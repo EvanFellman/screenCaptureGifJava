@@ -202,8 +202,7 @@ class ButtonThread extends Thread {
 			Main.tailOfImages = null;
 			Main.info.setText(Main.INSTRUCTIONS);
 			Main.mainFrame.repaint();
-		} catch (Exception e) {
-		}
+		} catch (Exception e) {}
 	}
 }
 
