@@ -5,7 +5,6 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.MouseInfo;
 import java.awt.PointerInfo;
@@ -14,7 +13,6 @@ import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
@@ -77,9 +75,6 @@ public class Main {
 		button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-				manager.addKeyEventDispatcher(new KeyDispatcher());
-				JTextField text = new JTextField();
 				text.addMouseListener(new MouseButtonRecognH());
 				f = new JFrame();
 				f.add(text);
@@ -127,19 +122,6 @@ class MouseButtonRecognH extends MouseAdapter {
 				e1.printStackTrace();
 			}
 		}
-	}
-}
-
-//Custom dispatcher
-class KeyDispatcher implements KeyEventDispatcher {
-	public boolean dispatchKeyEvent(KeyEvent evt) {
-		System.out.println(evt.isControlDown());
-		System.out.println(evt.getKeyChar() == ' ');
-		if (evt.isControlDown() && evt.getKeyChar() == ' ') {
-			Main.keepRecording = false;
-			System.out.println("typed" + evt.getKeyChar());
-		}
-		return false;
 	}
 }
 
@@ -192,7 +174,6 @@ class ButtonThread extends Thread {
 							mousePos);
 					Main.tailOfImages = Main.tailOfImages.next;
 				}
-				System.out.println("Say cheese!");
 				TimeUnit.MILLISECONDS.sleep((int) (1000 * Main.SPEED));
 			}
 			Main.info.setText(Main.LOADING);
@@ -215,7 +196,6 @@ class ButtonThread extends Thread {
 			}
 			writer.close();
 			output.close();
-			System.out.println("Done saving");
 			Main.numberOfImages = 0;
 			Main.lowerRightCorner = null;
 			Main.upperLeftCorner = null;
