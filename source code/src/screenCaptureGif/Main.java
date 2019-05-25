@@ -72,7 +72,6 @@ public class Main {
 		JButton button = new JButton("Record");
 		button.setBounds(0, 100, 500, 400);
 		button.addActionListener(new ActionListener() {
-			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				JTextField text = new JTextField();
 				text.addMouseListener(new MouseButtonRecognH());
@@ -126,8 +125,8 @@ class MouseButtonRecognH extends MouseAdapter {
 						Main.f.dispatchEvent(new WindowEvent(Main.f, WindowEvent.WINDOW_CLOSING));
 						Main.mainFrame.setState(Frame.ICONIFIED);
 						TimeUnit.MILLISECONDS.sleep(500);
-						Main.SPEED = 1 / ((double) Main.speeds.getValue());
-						Main.COMPRESS = 1 / ((double) Main.compression.getValue());
+						Main.SPEED = 1 / ((Double) Main.speeds.getValue());
+						Main.COMPRESS = 1 / ((Double) Main.compression.getValue());
 						Main.info.setText(Main.RECORDING);
 						Main.mainFrame.repaint();
 						while (Main.mainFrame.getState() == Frame.ICONIFIED) {
