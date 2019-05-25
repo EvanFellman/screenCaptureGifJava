@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.MouseInfo;
 import java.awt.PointerInfo;
@@ -58,16 +60,16 @@ public class Main {
 		info.setBounds(10, 0, 480, 30);
 		mainFrame.add(info);
 		JLabel speedLabel = new JLabel("Speed:");
-		speedLabel.setBounds(0, 40, 70, 15);
+		speedLabel.setBounds(10, 40, 70, 15);
 		mainFrame.add(speedLabel);
 		speeds = new JSpinner(new SpinnerNumberModel(5, 0.5, 30, 0.5));
-		speeds.setBounds(80, 40, 50, 15);
+		speeds.setBounds(90, 40, 50, 15);
 		mainFrame.add(speeds);
 		JLabel compressLabel = new JLabel("Compress:");
-		compressLabel.setBounds(0, 60, 70, 15);
+		compressLabel.setBounds(10, 60, 70, 15);
 		mainFrame.add(compressLabel);
 		compression = new JSpinner(new SpinnerNumberModel(1, 1, 20, 0.25));
-		compression.setBounds(80, 60, 50, 15);
+		compression.setBounds(90, 60, 50, 15);
 		mainFrame.add(compression);
 		JButton button = new JButton("Record");
 		button.setBounds(0, 100, 500, 400);
@@ -83,8 +85,12 @@ public class Main {
 				}
 				f = new JFrame();
 				f.add(text);
-				Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-				f.setSize(screenSize.width, screenSize.height);
+				Rectangle screenRect = new Rectangle(0, 0, 0, 0);
+				for (GraphicsDevice gd : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
+					screenRect = screenRect.union(gd.getDefaultConfiguration().getBounds());
+				}
+//				Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+				f.setSize(screenRect.width, screenRect.height);
 				f.setExtendedState(JFrame.MAXIMIZED_BOTH);
 				f.setUndecorated(true);
 				f.setOpacity(0.4f);
@@ -134,17 +140,17 @@ class MouseButtonRecognH extends MouseAdapter {
 							Point mousePos = new Point(a.getLocation().getX(), a.getLocation().getY());
 							if (Main.tailOfImages == null) {
 								Main.numberOfImages = 1;
-								Main.headOfImages = new LLNode(
-										(new Robot()).createScreenCapture(new Rectangle(Main.upperLeftCorner.x,
-												Main.upperLeftCorner.y, Main.lowerRightCorner.x - Main.upperLeftCorner.x,
+								Main.headOfImages = new LLNode((new Robot()).createScreenCapture(
+										new Rectangle(Main.upperLeftCorner.x, Main.upperLeftCorner.y,
+												Main.lowerRightCorner.x - Main.upperLeftCorner.x,
 												Main.lowerRightCorner.y - Main.upperLeftCorner.y)),
 										mousePos);
 								Main.tailOfImages = Main.headOfImages;
 							} else {
 								Main.numberOfImages++;
-								Main.tailOfImages.next = new LLNode(
-										(new Robot()).createScreenCapture(new Rectangle(Main.upperLeftCorner.x,
-												Main.upperLeftCorner.y, Main.lowerRightCorner.x - Main.upperLeftCorner.x,
+								Main.tailOfImages.next = new LLNode((new Robot()).createScreenCapture(
+										new Rectangle(Main.upperLeftCorner.x, Main.upperLeftCorner.y,
+												Main.lowerRightCorner.x - Main.upperLeftCorner.x,
 												Main.lowerRightCorner.y - Main.upperLeftCorner.y)),
 										mousePos);
 								Main.tailOfImages = Main.tailOfImages.next;
@@ -157,15 +163,22 @@ class MouseButtonRecognH extends MouseAdapter {
 						while ((new File("./HereYouGo" + Integer.toString(i) + ".gif")).exists()) {
 							i++;
 						}
-						ImageOutputStream output = new FileImageOutputStream(new File("./HereYouGo" + Integer.toString(i) + ".gif"));
-						GifSequenceWriter writer = new GifSequenceWriter(output, Main.headOfImages.img.getType(), (int) (1000 * Main.SPEED), true);
+						ImageOutputStream output = new FileImageOutputStream(
+								new File("./HereYouGo" + Integer.toString(i) + ".gif"));
+						GifSequenceWriter writer = new GifSequenceWriter(output, Main.headOfImages.img.getType(),
+								(int) (1000 * Main.SPEED), true);
 						LLNode t = Main.headOfImages;
 						BufferedImage mouse = ImageIO.read(new File("data/mouse.png"));
 						while (t != null) {
 							Graphics g = t.img.getGraphics();
-							g.drawImage(mouse, t.mousePosition.x - Main.upperLeftCorner.x, t.mousePosition.y - Main.upperLeftCorner.y, null);
-							BufferedImage out = new BufferedImage((int) (t.img.getWidth() * Main.COMPRESS), (int) (t.img.getHeight() * Main.COMPRESS), BufferedImage.TYPE_INT_RGB);
-							out.getGraphics().drawImage(t.img.getScaledInstance((int) (t.img.getWidth() * Main.COMPRESS), (int) (t.img.getHeight() * Main.COMPRESS), Image.SCALE_AREA_AVERAGING), 0, 0, null);
+							g.drawImage(mouse, t.mousePosition.x - Main.upperLeftCorner.x,
+									t.mousePosition.y - Main.upperLeftCorner.y, null);
+							BufferedImage out = new BufferedImage((int) (t.img.getWidth() * Main.COMPRESS),
+									(int) (t.img.getHeight() * Main.COMPRESS), BufferedImage.TYPE_INT_RGB);
+							out.getGraphics()
+									.drawImage(t.img.getScaledInstance((int) (t.img.getWidth() * Main.COMPRESS),
+											(int) (t.img.getHeight() * Main.COMPRESS), Image.SCALE_AREA_AVERAGING), 0,
+											0, null);
 							writer.writeToSequence(out);
 							t = t.next;
 						}
@@ -178,8 +191,8 @@ class MouseButtonRecognH extends MouseAdapter {
 						Main.tailOfImages = null;
 						Main.info.setText(Main.INSTRUCTIONS);
 						Main.mainFrame.repaint();
-					} catch(Exception e) {
-						
+					} catch (Exception e) {
+
 					}
 				}
 			} catch (Exception e1) {
