@@ -53,6 +53,7 @@ public class Main {
 		mainFrame.setSize(500, 500);
 		mainFrame.setResizable(false);
 		mainFrame.setLayout(null);
+		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		info = new JLabel(INSTRUCTIONS);
 		info.setBounds(10, 0, 480, 30);
 		mainFrame.add(info);
@@ -74,6 +75,13 @@ public class Main {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				JTextField text = new JTextField();
+				text.addMouseListener(new MouseButtonRecognH());
+				try {
+					TimeUnit.MILLISECONDS.sleep(500);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				f = new JFrame();
 				f.add(text);
 				Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -86,7 +94,6 @@ public class Main {
 				text.setCaretColor(Color.WHITE);
 				f.setVisible(true);
 				Main.mainFrame.setState(Frame.ICONIFIED);
-				text.addMouseListener(new MouseButtonRecognH());
 			}
 		});
 		mainFrame.add(button);
@@ -115,12 +122,72 @@ class MouseButtonRecognH extends MouseAdapter {
 						Main.upperLeftCorner.y = Main.lowerRightCorner.y;
 						Main.lowerRightCorner.y = temp;
 					}
-					(new ButtonThread()).run();
+					try {
+						Main.f.dispatchEvent(new WindowEvent(Main.f, WindowEvent.WINDOW_CLOSING));
+						Main.mainFrame.setState(Frame.ICONIFIED);
+						TimeUnit.MILLISECONDS.sleep(500);
+						Main.SPEED = 1 / ((double) Main.speeds.getValue());
+						Main.COMPRESS = 1 / ((double) Main.compression.getValue());
+						Main.info.setText(Main.RECORDING);
+						Main.mainFrame.repaint();
+						while (Main.mainFrame.getState() == Frame.ICONIFIED) {
+							PointerInfo a = MouseInfo.getPointerInfo();
+							Point mousePos = new Point(a.getLocation().getX(), a.getLocation().getY());
+							if (Main.tailOfImages == null) {
+								Main.numberOfImages = 1;
+								Main.headOfImages = new LLNode(
+										(new Robot()).createScreenCapture(new Rectangle(Main.upperLeftCorner.x,
+												Main.upperLeftCorner.y, Main.lowerRightCorner.x - Main.upperLeftCorner.x,
+												Main.lowerRightCorner.y - Main.upperLeftCorner.y)),
+										mousePos);
+								Main.tailOfImages = Main.headOfImages;
+							} else {
+								Main.numberOfImages++;
+								Main.tailOfImages.next = new LLNode(
+										(new Robot()).createScreenCapture(new Rectangle(Main.upperLeftCorner.x,
+												Main.upperLeftCorner.y, Main.lowerRightCorner.x - Main.upperLeftCorner.x,
+												Main.lowerRightCorner.y - Main.upperLeftCorner.y)),
+										mousePos);
+								Main.tailOfImages = Main.tailOfImages.next;
+							}
+							TimeUnit.MILLISECONDS.sleep((int) (1000 * Main.SPEED));
+						}
+						Main.info.setText(Main.LOADING);
+						Main.mainFrame.repaint();
+						int i = 0;
+						while ((new File("./HereYouGo" + Integer.toString(i) + ".gif")).exists()) {
+							i++;
+						}
+						ImageOutputStream output = new FileImageOutputStream(new File("./HereYouGo" + Integer.toString(i) + ".gif"));
+						GifSequenceWriter writer = new GifSequenceWriter(output, Main.headOfImages.img.getType(), (int) (1000 * Main.SPEED), true);
+						LLNode t = Main.headOfImages;
+						BufferedImage mouse = ImageIO.read(new File("data/mouse.png"));
+						while (t != null) {
+							Graphics g = t.img.getGraphics();
+							g.drawImage(mouse, t.mousePosition.x - Main.upperLeftCorner.x, t.mousePosition.y - Main.upperLeftCorner.y, null);
+							BufferedImage out = new BufferedImage((int) (t.img.getWidth() * Main.COMPRESS), (int) (t.img.getHeight() * Main.COMPRESS), BufferedImage.TYPE_INT_RGB);
+							out.getGraphics().drawImage(t.img.getScaledInstance((int) (t.img.getWidth() * Main.COMPRESS), (int) (t.img.getHeight() * Main.COMPRESS), Image.SCALE_AREA_AVERAGING), 0, 0, null);
+							writer.writeToSequence(out);
+							t = t.next;
+						}
+						writer.close();
+						output.close();
+						Main.numberOfImages = 0;
+						Main.lowerRightCorner = null;
+						Main.upperLeftCorner = null;
+						Main.headOfImages = null;
+						Main.tailOfImages = null;
+						Main.info.setText(Main.INSTRUCTIONS);
+						Main.mainFrame.repaint();
+					} catch(Exception e) {
+						
+					}
 				}
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 		}
+
 	}
 }
 
@@ -140,69 +207,6 @@ class Point {
 
 	public String toString() {
 		return "(" + Integer.toString(this.x) + ", " + Integer.toString(this.y) + ")";
-	}
-}
-
-class ButtonThread extends Thread {
-	public void run() {
-		try {
-			Main.f.dispatchEvent(new WindowEvent(Main.f, WindowEvent.WINDOW_CLOSING));
-			Main.mainFrame.setState(Frame.ICONIFIED);
-			TimeUnit.MILLISECONDS.sleep(500);
-			Main.SPEED = 1 / ((double) Main.speeds.getValue());
-			Main.COMPRESS = 1 / ((double) Main.compression.getValue());
-			Main.info.setText(Main.RECORDING);
-			Main.mainFrame.repaint();
-			while (Main.mainFrame.getState() == Frame.ICONIFIED) {
-				PointerInfo a = MouseInfo.getPointerInfo();
-				Point mousePos = new Point(a.getLocation().getX(), a.getLocation().getY());
-				if (Main.tailOfImages == null) {
-					Main.numberOfImages = 1;
-					Main.headOfImages = new LLNode(
-							(new Robot()).createScreenCapture(new Rectangle(Main.upperLeftCorner.x,
-									Main.upperLeftCorner.y, Main.lowerRightCorner.x - Main.upperLeftCorner.x,
-									Main.lowerRightCorner.y - Main.upperLeftCorner.y)),
-							mousePos);
-					Main.tailOfImages = Main.headOfImages;
-				} else {
-					Main.numberOfImages++;
-					Main.tailOfImages.next = new LLNode(
-							(new Robot()).createScreenCapture(new Rectangle(Main.upperLeftCorner.x,
-									Main.upperLeftCorner.y, Main.lowerRightCorner.x - Main.upperLeftCorner.x,
-									Main.lowerRightCorner.y - Main.upperLeftCorner.y)),
-							mousePos);
-					Main.tailOfImages = Main.tailOfImages.next;
-				}
-				TimeUnit.MILLISECONDS.sleep((int) (1000 * Main.SPEED));
-			}
-			Main.info.setText(Main.LOADING);
-			Main.mainFrame.repaint();
-			int i = 0;
-			while ((new File("./HereYouGo" + Integer.toString(i) + ".gif")).exists()) {
-				i++;
-			}
-			ImageOutputStream output = new FileImageOutputStream(new File("./HereYouGo" + Integer.toString(i) + ".gif"));
-			GifSequenceWriter writer = new GifSequenceWriter(output, Main.headOfImages.img.getType(), (int) (1000 * Main.SPEED), true);
-			LLNode t = Main.headOfImages;
-			BufferedImage mouse = ImageIO.read(new File("data/mouse.png"));
-			while (t != null) {
-				Graphics g = t.img.getGraphics();
-				g.drawImage(mouse, t.mousePosition.x - Main.upperLeftCorner.x, t.mousePosition.y - Main.upperLeftCorner.y, null);
-				BufferedImage out = new BufferedImage((int) (t.img.getWidth() * Main.COMPRESS), (int) (t.img.getHeight() * Main.COMPRESS), BufferedImage.TYPE_INT_RGB);
-				out.getGraphics().drawImage(t.img.getScaledInstance((int) (t.img.getWidth() * Main.COMPRESS), (int) (t.img.getHeight() * Main.COMPRESS), Image.SCALE_AREA_AVERAGING), 0, 0, null);
-				writer.writeToSequence(out);
-				t = t.next;
-			}
-			writer.close();
-			output.close();
-			Main.numberOfImages = 0;
-			Main.lowerRightCorner = null;
-			Main.upperLeftCorner = null;
-			Main.headOfImages = null;
-			Main.tailOfImages = null;
-			Main.info.setText(Main.INSTRUCTIONS);
-			Main.mainFrame.repaint();
-		} catch (Exception e) {}
 	}
 }
 
