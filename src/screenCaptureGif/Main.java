@@ -5,7 +5,6 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.KeyboardFocusManager;
 import java.awt.MouseInfo;
 import java.awt.PointerInfo;
 import java.awt.Rectangle;
@@ -27,7 +26,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
-import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
 public class Main {
@@ -75,7 +73,7 @@ public class Main {
 		button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				text.addMouseListener(new MouseButtonRecognH());
+				JTextField text = new JTextField();
 				f = new JFrame();
 				f.add(text);
 				Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -88,6 +86,7 @@ public class Main {
 				text.setCaretColor(Color.WHITE);
 				f.setVisible(true);
 				Main.mainFrame.setState(Frame.ICONIFIED);
+				text.addMouseListener(new MouseButtonRecognH());
 			}
 		});
 		mainFrame.add(button);
@@ -185,7 +184,7 @@ class ButtonThread extends Thread {
 			ImageOutputStream output = new FileImageOutputStream(new File("./HereYouGo" + Integer.toString(i) + ".gif"));
 			GifSequenceWriter writer = new GifSequenceWriter(output, Main.headOfImages.img.getType(), (int) (1000 * Main.SPEED), true);
 			LLNode t = Main.headOfImages;
-			BufferedImage mouse = ImageIO.read(new File("mouse.png"));
+			BufferedImage mouse = ImageIO.read(new File("data/mouse.png"));
 			while (t != null) {
 				Graphics g = t.img.getGraphics();
 				g.drawImage(mouse, t.mousePosition.x - Main.upperLeftCorner.x, t.mousePosition.y - Main.upperLeftCorner.y, null);

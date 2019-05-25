@@ -8,27 +8,15 @@ import java.io.*;
 import java.util.Iterator;
 
 public class GifSequenceWriter {
-	protected ImageWriter gifWriter;
 	protected ImageWriteParam imageWriteParam;
+	protected ImageWriter gifWriter;
 	protected IIOMetadata imageMetaData;
 
-	/**
-	 * Creates a new GifSequenceWriter
-	 * 
-	 * @param outputStream        the ImageOutputStream to be written to
-	 * @param imageType           one of the imageTypes specified in BufferedImage
-	 * @param timeBetweenFramesMS the time between frames in miliseconds
-	 * @param loopContinuously    wether the gif should loop repeatedly
-	 * @throws IIOException if no gif ImageWriters are found
-	 *
-	 * @author Elliot Kroo (elliot[at]kroo[dot]net)
-	 */
-	public GifSequenceWriter(ImageOutputStream outputStream, int imageType, int timeBetweenFramesMS,
+	public GifSequenceWriter(ImageOutputStream whereToPutIt, int imgNum, int millisecondsBetweenFrames,
 			boolean loopContinuously) throws IIOException, IOException {
-		// my method to create a writer
 		gifWriter = getWriter();
 		imageWriteParam = gifWriter.getDefaultWriteParam();
-		ImageTypeSpecifier imageTypeSpecifier = ImageTypeSpecifier.createFromBufferedImageType(imageType);
+		ImageTypeSpecifier imageTypeSpecifier = ImageTypeSpecifier.createFromBufferedImageType(imgNum);
 
 		imageMetaData = gifWriter.getDefaultImageMetadata(imageTypeSpecifier, imageWriteParam);
 
@@ -37,13 +25,12 @@ public class GifSequenceWriter {
 		IIOMetadataNode root = (IIOMetadataNode) imageMetaData.getAsTree(metaFormatName);
 
 		IIOMetadataNode graphicsControlExtensionNode = getNode(root, "GraphicControlExtension");
-
-		graphicsControlExtensionNode.setAttribute("disposalMethod", "none");
-		graphicsControlExtensionNode.setAttribute("userInputFlag", "FALSE");
-		graphicsControlExtensionNode.setAttribute("transparentColorFlag", "FALSE");
-		graphicsControlExtensionNode.setAttribute("delayTime", Integer.toString(timeBetweenFramesMS / 10));
+		
+		graphicsControlExtensionNode.setAttribute("delayTime", Integer.toString(millisecondsBetweenFrames / 10));
 		graphicsControlExtensionNode.setAttribute("transparentColorIndex", "0");
-
+		graphicsControlExtensionNode.setAttribute("disposalMethod", "none");
+		graphicsControlExtensionNode.setAttribute("transparentColorFlag", "FALSE");
+		graphicsControlExtensionNode.setAttribute("userInputFlag", "FALSE");
 		IIOMetadataNode commentsNode = getNode(root, "CommentExtensions");
 		commentsNode.setAttribute("CommentExtension", "Created by MAH");
 
@@ -61,7 +48,7 @@ public class GifSequenceWriter {
 
 		imageMetaData.setFromTree(metaFormatName, root);
 
-		gifWriter.setOutput(outputStream);
+		gifWriter.setOutput(whereToPutIt);
 
 		gifWriter.prepareWriteSequence(null);
 	}
@@ -70,21 +57,10 @@ public class GifSequenceWriter {
 		gifWriter.writeToSequence(new IIOImage(img, null, imageMetaData), imageWriteParam);
 	}
 
-	/**
-	 * Close this GifSequenceWriter object. This does not close the underlying
-	 * stream, just finishes off the GIF.
-	 */
 	public void close() throws IOException {
 		gifWriter.endWriteSequence();
 	}
 
-	/**
-	 * Returns the first available GIF ImageWriter using
-	 * ImageIO.getImageWritersBySuffix("gif").
-	 * 
-	 * @return a GIF ImageWriter object
-	 * @throws IIOException if no GIF image writers are returned
-	 */
 	private static ImageWriter getWriter() throws IIOException {
 		Iterator<ImageWriter> iter = ImageIO.getImageWritersBySuffix("gif");
 		if (!iter.hasNext()) {
@@ -93,16 +69,6 @@ public class GifSequenceWriter {
 			return iter.next();
 		}
 	}
-
-	/**
-	 * Returns an existing child node, or creates and returns a new child node (if
-	 * the requested node does not exist).
-	 * 
-	 * @param rootNode the <tt>IIOMetadataNode</tt> to search for the child node.
-	 * @param nodeName the name of the child node.
-	 * 
-	 * @return the child node, if found or a new node created with the given name.
-	 */
 	private static IIOMetadataNode getNode(IIOMetadataNode rootNode, String nodeName) {
 		int nNodes = rootNode.getLength();
 		for (int i = 0; i < nNodes; i++) {
