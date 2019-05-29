@@ -1,7 +1,6 @@
 package screenCaptureGif;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.GraphicsDevice;
@@ -11,7 +10,6 @@ import java.awt.MouseInfo;
 import java.awt.PointerInfo;
 import java.awt.Rectangle;
 import java.awt.Robot;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -44,8 +42,6 @@ public class Main {
 	public static JSpinner speeds;
 	public static JSpinner compression;
 	public static final String INSTRUCTIONS = "<html>First hit record, then click the two corners of the rectangle to record. Next pull up this window to stop recording.</html>";
-	public static final String RECORDING = "Open me to stop recording.";
-	public static final String LOADING = "Loading...";
 	public static boolean keepRecording = true;
 	public static double SPEED = 0.125;
 	public static double COMPRESS = 1;
@@ -133,8 +129,6 @@ class MouseButtonRecognH extends MouseAdapter {
 						TimeUnit.MILLISECONDS.sleep(500);
 						Main.SPEED = 1 / ((Double) Main.speeds.getValue());
 						Main.COMPRESS = 1 / ((Double) Main.compression.getValue());
-						Main.info.setText(Main.RECORDING);
-						Main.mainFrame.repaint();
 						while (Main.mainFrame.getState() == Frame.ICONIFIED) {
 							PointerInfo a = MouseInfo.getPointerInfo();
 							Point mousePos = new Point(a.getLocation().getX(), a.getLocation().getY());
@@ -157,8 +151,6 @@ class MouseButtonRecognH extends MouseAdapter {
 							}
 							TimeUnit.MILLISECONDS.sleep((int) (1000 * Main.SPEED));
 						}
-						Main.info.setText(Main.LOADING);
-						Main.mainFrame.repaint();
 						int i = 0;
 						while ((new File("./HereYouGo" + Integer.toString(i) + ".gif")).exists()) {
 							i++;
@@ -189,8 +181,6 @@ class MouseButtonRecognH extends MouseAdapter {
 						Main.upperLeftCorner = null;
 						Main.headOfImages = null;
 						Main.tailOfImages = null;
-						Main.info.setText(Main.INSTRUCTIONS);
-						Main.mainFrame.repaint();
 					} catch (Exception e) {
 
 					}
